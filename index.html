@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suivi de Kilométrage</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Icônes SVG simplifiées
+        const Car = () => (
+            <svg className="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h4a1 1 0 001-1m-6 0V9h4v7" />
+            </svg>
+        );
+
+        const Calendar = () => (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+        );
+
+        const Gauge = () => (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+        );
+
+        const TrendingUp = () => (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </svg>
+        );
+
+        const TrendingDown = () => (
+            <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+            </svg>
+        );
+
+        const TrendingUpLarge = () => (
+            <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </svg>
+        );
+
+        function KilometrageTracker() {
+            const [dateAchat, setDateAchat] = useState('2025-05-22');
+            const [quotaAnnuel, setQuotaAnnuel] = useState(20000);
+            const [kmActuel, setKmActuel] = useState(6160);
+            const [resultat, setResultat] = useState(null);
+
+            useEffect(() => {
+                calculerResultat();
+            }, [dateAchat, quotaAnnuel, kmActuel]);
+
+            const calculerResultat = () => {
+                if (!dateAchat || !quotaAnnuel || kmActuel === '') return;
+
+                const dateDebut = new Date(dateAchat);
+                const dateActuelle = new Date();
+                const joursEcoules = Math.floor((dateActuelle - dateDebut) / (1000 * 60 * 60 * 24));
+                const moisEcoules = joursEcoules / 30.44;
+                
+                const kmParJour = quotaAnnuel / 365;
+                const kmAttendu = Math.round(kmParJour * joursEcoules);
+                const difference = kmActuel - kmAttendu;
+                const pourcentage = Math.round((kmActuel / kmAttendu) * 100);
+                
+                const kmParMois = quotaAnnuel / 12;
+                const rythmeActuel = moisEcoules > 0 ? Math.round((kmActuel / moisEcoules) * 12) : 0;
+
+                setResultat({
+                    joursEcoules,
+                    moisEcoules: moisEcoules.toFixed(1),
+                    kmAttendu,
+                    difference,
+                    pourcentage,
+                    enDessous: difference < 0,
+                    rythmeActuel,
+                    kmParJour: kmParJour.toFixed(1),
+                    kmParMois: Math.round(kmParMois)
+                });
+            };
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 md:p-8">
+                    <div className="max-w-2xl mx-auto">
+                        <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8">
+                            <div className="flex items-center gap-3 mb-6">
+                                <Car />
+                                <h1 className="text-3xl font-bold text-gray-800">Suivi de Kilométrage</h1>
+                            </div>
+
+                            <div className="space-y-6">
+                                <div>
+                                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                                        <Calendar />
+                                        Date d'achat du véhicule
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={dateAchat}
+                                        onChange={(e) => setDateAchat(e.target.value)}
+                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:outline-none transition"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                                        <TrendingUp />
+                                        Quota annuel (km)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={quotaAnnuel}
+                                        onChange={(e) => setQuotaAnnuel(Number(e.target.value))}
+                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:outline-none transition"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                                        <Gauge />
+                                        Kilométrage actuel
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={kmActuel}
+                                        onChange={(e) => setKmActuel(Number(e.target.value))}
+                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:outline-none transition"
+                                    />
+                                </div>
+                            </div>
+
+                            {resultat && (
+                                <div className="mt-8 space-y-4">
+                                    <div className={`p-6 rounded-xl ${resultat.enDessous ? 'bg-green-50 border-2 border-green-200' : 'bg-orange-50 border-2 border-orange-200'}`}>
+                                        <div className="flex items-center gap-3 mb-4">
+                                            {resultat.enDessous ? <TrendingDown /> : <TrendingUpLarge />}
+                                            <h2 className={`text-xl font-bold ${resultat.enDessous ? 'text-green-800' : 'text-orange-800'}`}>
+                                                {resultat.enDessous ? '✓ En dessous de la moyenne' : '⚠ Au-dessus de la moyenne'}
+                                            </h2>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4 mb-4">
+                                            <div className="bg-white p-4 rounded-lg">
+                                                <div className="text-sm text-gray-600 mb-1">Kilométrage attendu</div>
+                                                <div className="text-2xl font-bold text-gray-800">{resultat.kmAttendu.toLocaleString('fr-FR')} km</div>
+                                            </div>
+                                            <div className="bg-white p-4 rounded-lg">
+                                                <div className="text-sm text-gray-600 mb-1">Votre kilométrage</div>
+                                                <div className="text-2xl font-bold text-indigo-600">{kmActuel.toLocaleString('fr-FR')} km</div>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-white p-4 rounded-lg mb-4">
+                                            <div className="text-sm text-gray-600 mb-2">Différence</div>
+                                            <div className={`text-3xl font-bold ${resultat.enDessous ? 'text-green-600' : 'text-orange-600'}`}>
+                                                {resultat.enDessous ? '' : '+'}{resultat.difference.toLocaleString('fr-FR')} km
+                                            </div>
+                                            <div className="text-sm text-gray-600 mt-1">
+                                                ({resultat.pourcentage}% de la moyenne)
+                                            </div>
+                                        </div>
+
+                                        <div className="text-sm text-gray-700 space-y-2">
+                                            <p><strong>Période écoulée :</strong> {resultat.joursEcoules} jours ({resultat.moisEcoules} mois)</p>
+                                            <p><strong>Moyenne autorisée :</strong> {resultat.kmParJour} km/jour ou {resultat.kmParMois} km/mois</p>
+                                            <p><strong>Votre rythme actuel :</strong> {resultat.rythmeActuel.toLocaleString('fr-FR')} km/an</p>
+                                        </div>
+                                    </div>
+
+                                    {resultat.enDessous && (
+                                        <div className="bg-blue-50 border-2 border-blue-200 p-4 rounded-lg">
+                                            <p className="text-blue-800 text-sm">
+                                                <strong>Bonne nouvelle !</strong> À ce rythme, vous terminerez l'année à environ <strong>{resultat.rythmeActuel.toLocaleString('fr-FR')} km</strong>, bien en dessous de votre limite de {quotaAnnuel.toLocaleString('fr-FR')} km.
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {!resultat.enDessous && (
+                                        <div className="bg-orange-50 border-2 border-orange-200 p-4 rounded-lg">
+                                            <p className="text-orange-800 text-sm">
+                                                <strong>Attention !</strong> À ce rythme, vous risquez de dépasser votre quota. Projeté sur l'année : <strong>{resultat.rythmeActuel.toLocaleString('fr-FR')} km</strong>.
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<KilometrageTracker />, document.getElementById('root'));
+    </script>
+</body>
+</html>
