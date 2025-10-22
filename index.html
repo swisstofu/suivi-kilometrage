@@ -142,6 +142,9 @@
                 </svg>
             );
 
+            // Version de l'application - Facile à incrémenter
+            const APP_VERSION = "1.0";
+
             function KilometrageTracker() {
                 // Fonction pour charger les valeurs depuis le localStorage de manière sécurisée (compatible iOS)
                 const chargerValeur = (cle, valeurParDefaut) => {
@@ -455,6 +458,13 @@
                                         )}
                                     </div>
                                 )}
+                            </div>
+
+                            {/* Numéro de version en bas */}
+                            <div className="text-center mt-4">
+                                <p className="text-xs text-gray-400">
+                                    Version {APP_VERSION}
+                                </p>
                             </div>
                         </div>
                     </div>
