@@ -1,16 +1,8 @@
 [
   {
-    "label": "Lancer serveur web",
+    "label": "Lancer serveur web (port 8000)",
     "command": "python3",
     "args": ["-m", "http.server", "8000"],
-    "use_new_terminal": true,
-    "reveal": "always",
-    "allow_concurrent_runs": false
-  },
-  {
-    "label": "Lancer serveur web (port 3000)",
-    "command": "python3",
-    "args": ["-m", "http.server", "3000"],
     "use_new_terminal": true,
     "reveal": "always",
     "allow_concurrent_runs": false
