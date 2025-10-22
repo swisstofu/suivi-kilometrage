@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Générateur d'icône</title>
+</head>
+<body>
+    <h1>Générateur d'icône pour iOS</h1>
+    <canvas id="canvas" width="180" height="180"></canvas>
+    <br>
+    <button onclick="downloadIcon()">Télécharger icon-180.png</button>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Fond bleu avec coins arrondis
+        ctx.fillStyle = '#4f46e5';
+        roundRect(ctx, 0, 0, 180, 180, 40);
+        ctx.fill();
+
+        // Carrosserie blanche
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.moveTo(36, 117);
+        ctx.lineTo(36, 99);
+        ctx.lineTo(45, 81);
+        ctx.lineTo(63, 72);
+        ctx.lineTo(117, 72);
+        ctx.lineTo(135, 81);
+        ctx.lineTo(144, 99);
+        ctx.lineTo(144, 117);
+        ctx.closePath();
+        ctx.fill();
+
+        // Fenêtres bleu clair
+        ctx.fillStyle = '#93c5fd';
+        roundRect(ctx, 54, 81, 27, 18, 4);
+        ctx.fill();
+        roundRect(ctx, 99, 81, 27, 18, 4);
+        ctx.fill();
+
+        // Roues
+        // Roue gauche
+        ctx.fillStyle = '#374151';
+        ctx.beginPath();
+        ctx.arc(54, 117, 11, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#d1d5db';
+        ctx.beginPath();
+        ctx.arc(54, 117, 5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Roue droite
+        ctx.fillStyle = '#374151';
+        ctx.beginPath();
+        ctx.arc(126, 117, 11, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#d1d5db';
+        ctx.beginPath();
+        ctx.arc(126, 117, 5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Phares jaunes
+        ctx.fillStyle = '#fbbf24';
+        roundRect(ctx, 39, 90, 5, 4, 2);
+        ctx.fill();
+        roundRect(ctx, 135, 90, 5, 4, 2);
+        ctx.fill();
+
+        // Grilles avant
+        ctx.fillStyle = '#e5e7eb';
+        ctx.beginPath();
+        ctx.moveTo(63, 99);
+        ctx.lineTo(72, 99);
+        ctx.lineTo(75.6, 104.4);
+        ctx.lineTo(68.4, 104.4);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(117, 99);
+        ctx.lineTo(108, 99);
+        ctx.lineTo(104.4, 104.4);
+        ctx.lineTo(111.6, 104.4);
+        ctx.closePath();
+        ctx.fill();
+
+        function roundRect(ctx, x, y, width, height, radius) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+        }
+
+        function downloadIcon() {
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'icon-180.png';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+        }
+    </script>
+</body>
+</html>
