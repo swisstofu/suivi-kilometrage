@@ -3,6 +3,12 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta
+            http-equiv="Cache-Control"
+            content="no-cache, no-store, must-revalidate"
+        />
+        <meta http-equiv="Pragma" content="no-cache" />
+        <meta http-equiv="Expires" content="0" />
         <title>Suivi de kilométrage Volvo EX 30</title>
         <link
             rel="icon"
@@ -21,6 +27,9 @@
             name="apple-mobile-web-app-title"
             content="Suivi de kilométrage Volvo EX 30"
         />
+
+        <!-- PWA Manifest -->
+        <link rel="manifest" href="manifest.json" />
 
         <script
             crossorigin
@@ -143,7 +152,20 @@
             );
 
             // Version de l'application - Facile à incrémenter
-            const APP_VERSION = "1.1";
+            const APP_VERSION = "1.2";
+
+            // Check version and clear cache if needed
+            const storedVersion = localStorage.getItem("appVersion");
+            if (storedVersion !== APP_VERSION) {
+                console.log(
+                    `Version changed from ${storedVersion} to ${APP_VERSION}. Clearing cache...`,
+                );
+                localStorage.setItem("appVersion", APP_VERSION);
+                // Force a hard reload to ensure fresh content
+                if (storedVersion !== null) {
+                    window.location.reload(true);
+                }
+            }
 
             function KilometrageTracker() {
                 // Function to load values from localStorage safely (iOS compatible)
