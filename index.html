@@ -143,112 +143,107 @@
             );
 
             // Version de l'application - Facile à incrémenter
-            const APP_VERSION = "1.0";
+            const APP_VERSION = "1.1";
 
             function KilometrageTracker() {
-                // Fonction pour charger les valeurs depuis le localStorage de manière sécurisée (compatible iOS)
-                const chargerValeur = (cle, valeurParDefaut) => {
+                // Function to load values from localStorage safely (iOS compatible)
+                const loadValue = (key, defaultValue) => {
                     try {
-                        const valeurStockee = localStorage.getItem(cle);
-                        if (valeurStockee !== null) {
-                            return typeof valeurParDefaut === "number"
-                                ? Number(valeurStockee)
-                                : valeurStockee;
+                        const storedValue = localStorage.getItem(key);
+                        if (storedValue !== null) {
+                            return typeof defaultValue === "number"
+                                ? Number(storedValue)
+                                : storedValue;
                         }
                     } catch (error) {
-                        console.warn(
-                            "Erreur lors de la lecture du localStorage:",
-                            error,
-                        );
+                        console.warn("Error reading from localStorage:", error);
                     }
-                    return valeurParDefaut;
+                    return defaultValue;
                 };
 
-                const [dateAchat, setDateAchat] = useState(() =>
-                    chargerValeur("dateAchat", "2025-05-22"),
+                const [purchaseDate, setPurchaseDate] = useState(() =>
+                    loadValue("purchaseDate", "2025-05-22"),
                 );
-                const [quotaAnnuel, setQuotaAnnuel] = useState(() =>
-                    chargerValeur("quotaAnnuel", 20000),
+                const [annualQuota, setAnnualQuota] = useState(() =>
+                    loadValue("annualQuota", 20000),
                 );
-                const [kmActuel, setKmActuel] = useState(() =>
-                    chargerValeur("kmActuel", 6160),
+                const [currentKm, setCurrentKm] = useState(() =>
+                    loadValue("currentKm", 6160),
                 );
-                const [resultat, setResultat] = useState(null);
+                const [result, setResult] = useState(null);
 
-                // Sauvegarder dans le localStorage à chaque changement
+                // Save to localStorage on each change
                 useEffect(() => {
                     try {
-                        localStorage.setItem("dateAchat", dateAchat);
+                        localStorage.setItem("purchaseDate", purchaseDate);
                     } catch (error) {
-                        console.warn(
-                            "Erreur lors de la sauvegarde de dateAchat:",
-                            error,
-                        );
+                        console.warn("Error saving purchaseDate:", error);
                     }
-                }, [dateAchat]);
+                }, [purchaseDate]);
 
                 useEffect(() => {
                     try {
                         localStorage.setItem(
-                            "quotaAnnuel",
-                            String(quotaAnnuel),
+                            "annualQuota",
+                            String(annualQuota),
                         );
                     } catch (error) {
-                        console.warn(
-                            "Erreur lors de la sauvegarde de quotaAnnuel:",
-                            error,
-                        );
+                        console.warn("Error saving annualQuota:", error);
                     }
-                }, [quotaAnnuel]);
+                }, [annualQuota]);
 
                 useEffect(() => {
                     try {
-                        localStorage.setItem("kmActuel", String(kmActuel));
+                        localStorage.setItem("currentKm", String(currentKm));
                     } catch (error) {
-                        console.warn(
-                            "Erreur lors de la sauvegarde de kmActuel:",
-                            error,
-                        );
+                        console.warn("Error saving currentKm:", error);
                     }
-                }, [kmActuel]);
+                }, [currentKm]);
+
+                // Current date state
+                const [currentDate, setCurrentDate] = useState(() => {
+                    const today = new Date();
+                    return today.toISOString().split("T")[0];
+                });
 
                 useEffect(() => {
-                    calculerResultat();
-                }, [dateAchat, quotaAnnuel, kmActuel]);
+                    calculateResult();
+                }, [purchaseDate, annualQuota, currentKm, currentDate]);
 
-                const calculerResultat = () => {
-                    if (!dateAchat || !quotaAnnuel || kmActuel === "") return;
+                const calculateResult = () => {
+                    if (!purchaseDate || !annualQuota || currentKm === "")
+                        return;
 
-                    const dateDebut = new Date(dateAchat);
-                    const dateActuelle = new Date();
-                    const joursEcoules = Math.floor(
-                        (dateActuelle - dateDebut) / (1000 * 60 * 60 * 24),
+                    const startDate = new Date(purchaseDate);
+                    const endDate = new Date(currentDate);
+                    const daysElapsed = Math.floor(
+                        (endDate - startDate) / (1000 * 60 * 60 * 24),
                     );
-                    const moisEcoules = joursEcoules / 30.44;
+                    const monthsElapsed = daysElapsed / 30.44;
 
-                    const kmParJour = quotaAnnuel / 365;
-                    const kmAttendu = Math.round(kmParJour * joursEcoules);
-                    const difference = kmActuel - kmAttendu;
-                    const pourcentage = Math.round(
-                        (kmActuel / kmAttendu) * 100,
+                    const kmPerDay = annualQuota / 365;
+                    const expectedKm = Math.round(kmPerDay * daysElapsed);
+                    const difference = currentKm - expectedKm;
+                    const percentage = Math.round(
+                        (currentKm / expectedKm) * 100,
                     );
 
-                    const kmParMois = quotaAnnuel / 12;
-                    const rythmeActuel =
-                        moisEcoules > 0
-                            ? Math.round((kmActuel / moisEcoules) * 12)
+                    const kmPerMonth = annualQuota / 12;
+                    const currentPace =
+                        monthsElapsed > 0
+                            ? Math.round((currentKm / monthsElapsed) * 12)
                             : 0;
 
-                    setResultat({
-                        joursEcoules,
-                        moisEcoules: moisEcoules.toFixed(1),
-                        kmAttendu,
+                    setResult({
+                        daysElapsed,
+                        monthsElapsed: monthsElapsed.toFixed(1),
+                        expectedKm,
                         difference,
-                        pourcentage,
-                        enDessous: difference < 0,
-                        rythmeActuel,
-                        kmParJour: kmParJour.toFixed(1),
-                        kmParMois: Math.round(kmParMois),
+                        percentage,
+                        isBelow: difference < 0,
+                        currentPace,
+                        kmPerDay: kmPerDay.toFixed(1),
+                        kmPerMonth: Math.round(kmPerMonth),
                     });
                 };
 
@@ -267,13 +262,32 @@
                                     <div>
                                         <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
                                             <Calendar />
+                                            Date du jour
+                                        </label>
+                                        <input
+                                            type="date"
+                                            value={currentDate}
+                                            readOnly
+                                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed text-base"
+                                            style={{
+                                                WebkitAppearance: "none",
+                                                MozAppearance: "none",
+                                                appearance: "none",
+                                                minHeight: "48px",
+                                            }}
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                                            <Calendar />
                                             Date d'achat du véhicule
                                         </label>
                                         <input
                                             type="date"
-                                            value={dateAchat}
+                                            value={purchaseDate}
                                             onChange={(e) =>
-                                                setDateAchat(e.target.value)
+                                                setPurchaseDate(e.target.value)
                                             }
                                             className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:outline-none transition text-base"
                                             style={{
@@ -292,9 +306,9 @@
                                         </label>
                                         <input
                                             type="number"
-                                            value={quotaAnnuel}
+                                            value={annualQuota}
                                             onChange={(e) =>
-                                                setQuotaAnnuel(
+                                                setAnnualQuota(
                                                     Number(e.target.value),
                                                 )
                                             }
@@ -309,9 +323,9 @@
                                         </label>
                                         <input
                                             type="number"
-                                            value={kmActuel}
+                                            value={currentKm}
                                             onChange={(e) =>
-                                                setKmActuel(
+                                                setCurrentKm(
                                                     Number(e.target.value),
                                                 )
                                             }
@@ -320,21 +334,21 @@
                                     </div>
                                 </div>
 
-                                {resultat && (
+                                {result && (
                                     <div className="mt-8 space-y-4">
                                         <div
-                                            className={`p-6 rounded-xl ${resultat.enDessous ? "bg-green-50 border-2 border-green-200" : "bg-orange-50 border-2 border-orange-200"}`}
+                                            className={`p-6 rounded-xl ${result.isBelow ? "bg-green-50 border-2 border-green-200" : "bg-orange-50 border-2 border-orange-200"}`}
                                         >
                                             <div className="flex items-center gap-3 mb-4">
-                                                {resultat.enDessous ? (
+                                                {result.isBelow ? (
                                                     <TrendingDown />
                                                 ) : (
                                                     <TrendingUpLarge />
                                                 )}
                                                 <h2
-                                                    className={`text-xl font-bold ${resultat.enDessous ? "text-green-800" : "text-orange-800"}`}
+                                                    className={`text-xl font-bold ${result.isBelow ? "text-green-800" : "text-orange-800"}`}
                                                 >
-                                                    {resultat.enDessous
+                                                    {result.isBelow
                                                         ? "✓ En dessous de la moyenne"
                                                         : "⚠ Au-dessus de la moyenne"}
                                                 </h2>
@@ -346,7 +360,7 @@
                                                         Kilométrage attendu
                                                     </div>
                                                     <div className="text-2xl font-bold text-gray-800">
-                                                        {resultat.kmAttendu.toLocaleString(
+                                                        {result.expectedKm.toLocaleString(
                                                             "fr-FR",
                                                         )}{" "}
                                                         km
@@ -357,7 +371,7 @@
                                                         Votre kilométrage
                                                     </div>
                                                     <div className="text-2xl font-bold text-indigo-600">
-                                                        {kmActuel.toLocaleString(
+                                                        {currentKm.toLocaleString(
                                                             "fr-FR",
                                                         )}{" "}
                                                         km
@@ -370,19 +384,17 @@
                                                     Différence
                                                 </div>
                                                 <div
-                                                    className={`text-3xl font-bold ${resultat.enDessous ? "text-green-600" : "text-orange-600"}`}
+                                                    className={`text-3xl font-bold ${result.isBelow ? "text-green-600" : "text-orange-600"}`}
                                                 >
-                                                    {resultat.enDessous
-                                                        ? ""
-                                                        : "+"}
-                                                    {resultat.difference.toLocaleString(
+                                                    {result.isBelow ? "" : "+"}
+                                                    {result.difference.toLocaleString(
                                                         "fr-FR",
                                                     )}{" "}
                                                     km
                                                 </div>
                                                 <div className="text-sm text-gray-600 mt-1">
-                                                    ({resultat.pourcentage}% de
-                                                    la moyenne)
+                                                    ({result.percentage}% de la
+                                                    moyenne)
                                                 </div>
                                             </div>
 
@@ -391,23 +403,21 @@
                                                     <strong>
                                                         Période écoulée :
                                                     </strong>{" "}
-                                                    {resultat.joursEcoules}{" "}
-                                                    jours (
-                                                    {resultat.moisEcoules} mois)
+                                                    {result.daysElapsed} jours (
+                                                    {result.monthsElapsed} mois)
                                                 </p>
                                                 <p>
                                                     <strong>
                                                         Moyenne autorisée :
                                                     </strong>{" "}
-                                                    {resultat.kmParJour} km/jour
-                                                    ou {resultat.kmParMois}{" "}
-                                                    km/mois
+                                                    {result.kmPerDay} km/jour ou{" "}
+                                                    {result.kmPerMonth} km/mois
                                                 </p>
                                                 <p>
                                                     <strong>
                                                         Votre rythme actuel :
                                                     </strong>{" "}
-                                                    {resultat.rythmeActuel.toLocaleString(
+                                                    {result.currentPace.toLocaleString(
                                                         "fr-FR",
                                                     )}{" "}
                                                     km/an
@@ -415,7 +425,7 @@
                                             </div>
                                         </div>
 
-                                        {resultat.enDessous && (
+                                        {result.isBelow && (
                                             <div className="bg-blue-50 border-2 border-blue-200 p-4 rounded-lg">
                                                 <p className="text-blue-800 text-sm">
                                                     <strong>
@@ -424,14 +434,14 @@
                                                     À ce rythme, vous terminerez
                                                     l'année à environ{" "}
                                                     <strong>
-                                                        {resultat.rythmeActuel.toLocaleString(
+                                                        {result.currentPace.toLocaleString(
                                                             "fr-FR",
                                                         )}{" "}
                                                         km
                                                     </strong>
                                                     , bien en dessous de votre
                                                     limite de{" "}
-                                                    {quotaAnnuel.toLocaleString(
+                                                    {annualQuota.toLocaleString(
                                                         "fr-FR",
                                                     )}{" "}
                                                     km.
@@ -439,7 +449,7 @@
                                             </div>
                                         )}
 
-                                        {!resultat.enDessous && (
+                                        {!result.isBelow && (
                                             <div className="bg-orange-50 border-2 border-orange-200 p-4 rounded-lg">
                                                 <p className="text-orange-800 text-sm">
                                                     <strong>Attention !</strong>{" "}
@@ -447,7 +457,7 @@
                                                     dépasser votre quota.
                                                     Projeté sur l'année :{" "}
                                                     <strong>
-                                                        {resultat.rythmeActuel.toLocaleString(
+                                                        {result.currentPace.toLocaleString(
                                                             "fr-FR",
                                                         )}{" "}
                                                         km
